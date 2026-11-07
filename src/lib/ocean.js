@@ -86,9 +86,11 @@ export class Ocean {
     return { x: rand(0, this.W), y: anywhere ? rand(0, this.H) : this.H + rand(0, 40), r: rand(1.5, 6), sp: rand(18, 48), wob: rand(0, 6) };
   }
 
-  // Height of an average creature: about 110px on a laptop, 57px on a phone.
+  // Height of an average creature: about 110px on a laptop, 72px on a phone.
+  // Phones (narrow side under 600px) get a slightly larger share so drawings aren't tiny.
   baseH() {
-    return Math.max(52, Math.min(120, Math.min(this.W, this.H) * 0.145));
+    const short = Math.min(this.W, this.H);
+    return Math.max(52, Math.min(120, short * (short < 600 ? 0.185 : 0.145)));
   }
 
   nameSize() {
