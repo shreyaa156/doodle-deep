@@ -227,6 +227,38 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: bala
 }
 @keyframes wave { to { transform: translateY(calc(-100vh - 320px)); } }
 
+@media (min-width: 761px) and (orientation: portrait) {
+  /* portrait tablets: plenty of height, so stack everything and let the canvas use the full width */
+  .studio { grid-template-columns: 1fr; gap: 14px; }
+  .ref { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 10px 16px; align-items: center; }
+  .ref h2 { display: none; }
+  .ref .art { height: 96px; padding: 8px; }
+  .ref p { margin: 0; }
+  .ref .tip { grid-column: 1 / -1; margin: 0; }
+  .canvas-wrap { width: 100%; }
+}
+@media (min-width: 761px) and (orientation: landscape) {
+  /* laptops/landscape tablets: name + Release move under the inspiration card, so the canvas gets that height */
+  .page-inner:has(.studio) { max-width: 1280px; }
+  .draw-head { margin-bottom: 16px; }
+  .studio {
+    grid-template-columns: 260px minmax(0, 1fr); row-gap: 14px;
+    grid-template-areas: "ref toolbar" "ref palette" "ref canvas" "release canvas" "msg canvas";
+  }
+  .canvas-col { display: contents; }
+  .ref { grid-area: ref; align-self: start; }
+  .toolbar { grid-area: toolbar; }
+  .palette { grid-area: palette; }
+  .canvas-wrap {
+    grid-area: canvas; align-self: start;
+    width: min(100%, max(420px, calc((100vh - 270px) * 10 / 7)));
+    width: min(100%, max(420px, calc((100dvh - 270px) * 10 / 7)));
+  }
+  .release-row { grid-area: release; align-self: end; flex-direction: column; align-items: stretch; }
+  .release-row .field { flex: none; }
+  .release { justify-content: center; font-size: 18px; padding: 14px 18px; }
+  .studio > .canvas-col > .form-msg { grid-area: msg; }
+}
 @media (max-width: 760px) {
   /* phones: compact reference, canvas first, tools right under it within thumb reach */
   .page { padding-block: calc(16px + env(safe-area-inset-top, 0px)) calc(32px + env(safe-area-inset-bottom, 0px)); }
