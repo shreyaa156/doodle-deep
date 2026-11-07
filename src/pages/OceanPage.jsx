@@ -50,7 +50,10 @@ export default function OceanPage({ go, highlightId, onHighlightShown }) {
         <div className="ocean-status"><strong>The ocean couldn't load</strong>Check your connection and reload the page.</div>
       )}
       {!error && creatures?.length === 0 && (
-        <div className="ocean-status"><strong>The ocean is empty</strong>Be the first to draw a creature and set it swimming.</div>
+        <div className="ocean-status">
+          <strong>The ocean is empty</strong>Be the first to draw a creature and set it swimming.
+          <button className="cta cta-inline" onClick={() => go('pick')}><BrushIcon />Draw your creature</button>
+        </div>
       )}
 
       {selected && (
@@ -69,7 +72,9 @@ export default function OceanPage({ go, highlightId, onHighlightShown }) {
         </div>
       )}
 
-      <button className="cta" onClick={() => go('pick')}><BrushIcon />Draw your creature</button>
+      {creatures?.length !== 0 && (
+        <button className="cta" onClick={() => go('pick')}><BrushIcon />Draw your creature</button>
+      )}
     </div>
   );
 }
