@@ -130,7 +130,9 @@ export class Ocean {
       const highest = Math.min(lowest, H * 0.13 + h / 2 + amp);
       s.home = rand(highest, lowest);
     }
-    if (s.x == null) s.x = rand(w / 2, Math.max(w / 2 + 1, W - w / 2));
+    // start somewhere inside the ocean; after a resize, pull back in anyone left outside
+    const [lo, hi] = this.xRange(s);
+    s.x = s.x == null ? rand(lo, hi) : Math.min(hi, Math.max(lo, s.x));
   }
 
   addSprite(c) {
@@ -252,29 +254,39 @@ export class Ocean {
   }
 
   // Moves one creature and returns how to draw it this frame.
+  // Leftmost/rightmost centre a creature may have so its body and name tag stay fully on screen.
+  xRange(s) {
+    const half = Math.max(s.w / 2, (s.tw || 0) / 2) + 12;
+    const mid = this.W / 2;
+    return [Math.min(half, mid), Math.max(this.W - half, mid)];
+  }
+
+  // Moves a creature sideways and turns it around at the edges (plus now and then at random).
+  move(s, dt, turnChance) {
+    const [lo, hi] = this.xRange(s);
+    s.x += s.dir * s.speed * dt;
+    if (s.x >= hi) { s.x = hi; s.dir = -1; }
+    else if (s.x <= lo) { s.x = lo; s.dir = 1; }
+    else if (Math.random() < dt * turnChance) s.dir *= -1;
+  }
+
   step(s, dt, t) {
-    const { W, H } = this;
     const m = s.t.motion;
     if (m === 'crawl') {
-      s.x += s.dir * s.speed * dt;
-      if ((s.dir > 0 && s.x > W - s.w / 2) || (s.dir < 0 && s.x < s.w / 2) || Math.random() < dt * 0.12) s.dir *= -1;
+      this.move(s, dt, 0.12);
       return { y: s.home - Math.abs(Math.sin(t * 9 + s.ph)) * 2.5, rot: Math.sin(t * 9 + s.ph) * 0.03, sx: 1, sy: 1 };
     }
     if (m === 'bob') {
-      s.x += s.dir * s.speed * dt;
-      if ((s.dir > 0 && s.x > W - s.w / 2) || (s.dir < 0 && s.x < s.w / 2)) s.dir *= -1;
+      this.move(s, dt, 0);
       const p = Math.sin(t * 1.8 + s.ph);
       return { y: s.home + Math.sin(t * 0.35 + s.ph) * this.bobAmp(), rot: Math.sin(t * 0.5 + s.ph) * 0.05, sx: 1 - p * 0.04, sy: 1 + p * 0.07 };
     }
     if (m === 'wiggle') {
-      s.x += s.dir * s.speed * dt;
-      if ((s.dir > 0 && s.x > W - s.w / 2) || (s.dir < 0 && s.x < s.w / 2) || Math.random() < dt * 0.02) s.dir *= -1;
+      this.move(s, dt, 0.02);
       return { y: s.home + Math.sin(t * 0.6 + s.ph) * 16, rot: Math.sin(t * 1.6 + s.ph) * 0.13, sx: 1, sy: 1 + Math.sin(t * 3 + s.ph) * 0.03 };
     }
-    // swim: leave the edge a little, then turn around
-    const edge = s.w * 0.25;
-    s.x += s.dir * s.speed * dt;
-    if ((s.dir > 0 && s.x > W + edge) || (s.dir < 0 && s.x < -edge) || Math.random() < dt * 0.015) s.dir *= -1;
+    // swim: turn around at the edge, flipping smoothly to face the new way
+    this.move(s, dt, 0.015);
     s.face += (s.dir - s.face) * Math.min(1, dt * 3.5);
     return { y: s.home + Math.sin(t * 0.9 + s.ph) * 7, rot: Math.sin(t * 0.9 + s.ph + 1.2) * 0.05 * s.dir, sx: s.face, sy: 1 };
   }
@@ -319,6 +331,7 @@ export class Ocean {
     ctx.textBaseline = 'middle';
     const ty = y + s.h / 2 + fs;
     const tw = ctx.measureText(s.name).width + fs + 2;
+    s.tw = tw; // so the edges also keep a name wider than its drawing on screen
     const th = fs + 8;
     ctx.fillStyle = 'rgba(3,24,43,.5)';
     this.roundRect(s.x - tw / 2, ty - th / 2, tw, th, th / 2);
