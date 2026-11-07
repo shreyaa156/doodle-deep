@@ -28,11 +28,37 @@ export default function DrawPage({ go, type, onReleased }) {
   const [msg, setMsg] = useState({ text: '', ok: false });
   const [busy, setBusy] = useState(false);
 
+  // The canvas fills whatever space the layout gives it, so its pixel size follows its on-screen size.
+  // At least 1000px across (what phones always had), so brush sizes look the same as before.
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    if (savedDrawing) ctx.putImageData(savedDrawing, 0, 0);
-    return () => { savedDrawing = ctx.getImageData(0, 0, canvas.width, canvas.height); };
+    let pending = savedDrawing;
+    const fit = () => {
+      const { width: cssW, height: cssH } = canvas.getBoundingClientRect();
+      if (!cssW || !cssH) return;
+      const k = Math.max(1.4, 1000 / Math.max(cssW, cssH * 10 / 7));
+      const w = Math.round(cssW * k), h = Math.round(cssH * k);
+      if (w === canvas.width && h === canvas.height && !pending) return;
+      // Keep what's drawn: copy it out, resize, then paint it back scaled to the new size.
+      const old = document.createElement('canvas');
+      if (pending) {
+        old.width = pending.width; old.height = pending.height;
+        old.getContext('2d').putImageData(pending, 0, 0);
+        pending = null;
+      } else {
+        old.width = canvas.width; old.height = canvas.height;
+        old.getContext('2d').drawImage(canvas, 0, 0);
+      }
+      canvas.width = w; canvas.height = h;
+      const s = Math.min(w / old.width, h / old.height);
+      ctx.drawImage(old, 0, 0, old.width * s, old.height * s);
+      undoStack.current = []; // snapshots were taken at the old size
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(canvas);
+    return () => { ro.disconnect(); savedDrawing = ctx.getImageData(0, 0, canvas.width, canvas.height); };
   }, []);
 
   const ctx = () => canvasRef.current.getContext('2d', { willReadFrequently: true });
@@ -129,7 +155,7 @@ export default function DrawPage({ go, type, onReleased }) {
   };
 
   return (
-    <div className="page">
+    <div className="page draw-page">
       <div className="page-inner">
         <header className="draw-head">
           <button className="back" onClick={() => go('pick')}><BackIcon />Pick another</button>

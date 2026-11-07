@@ -227,33 +227,37 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: bala
 }
 @keyframes wave { to { transform: translateY(calc(-100vh - 320px)); } }
 
+@media (min-width: 761px) {
+  /* laptops/tablets: the draw page is exactly one screen tall and the canvas stretches into all the space left over */
+  .draw-page {
+    height: 100vh; height: 100dvh; overflow-y: auto; display: flex; flex-direction: column;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+  .draw-page .page-inner { flex: 1; min-height: 0; width: 100%; max-width: 1800px; display: flex; flex-direction: column; }
+  .draw-head { margin-bottom: 16px; }
+  .studio { flex: 1; min-height: 0; row-gap: 14px; }
+  .canvas-col { display: contents; }
+  .canvas-wrap { width: 100%; height: 100%; aspect-ratio: auto; min-height: 320px; }
+}
 @media (min-width: 761px) and (orientation: portrait) {
-  /* portrait tablets: plenty of height, so stack everything and let the canvas use the full width */
-  .studio { grid-template-columns: 1fr; gap: 14px; }
+  /* portrait tablets: everything stacked, canvas takes the full width and the leftover height */
+  .studio { grid-template-columns: 1fr; grid-template-rows: auto auto auto 1fr auto auto; }
   .ref { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 10px 16px; align-items: center; }
   .ref h2 { display: none; }
   .ref .art { height: 96px; padding: 8px; }
   .ref p { margin: 0; }
   .ref .tip { grid-column: 1 / -1; margin: 0; }
-  .canvas-wrap { width: 100%; }
 }
 @media (min-width: 761px) and (orientation: landscape) {
-  /* laptops/landscape tablets: name + Release move under the inspiration card, so the canvas gets that height */
-  .page-inner:has(.studio) { max-width: 1280px; }
-  .draw-head { margin-bottom: 16px; }
+  /* laptops/landscape tablets: name + Release sit under the inspiration card; the canvas fills the rest */
   .studio {
-    grid-template-columns: 260px minmax(0, 1fr); row-gap: 14px;
+    grid-template-columns: 260px minmax(0, 1fr); grid-template-rows: auto auto 1fr auto auto;
     grid-template-areas: "ref toolbar" "ref palette" "ref canvas" "release canvas" "msg canvas";
   }
-  .canvas-col { display: contents; }
   .ref { grid-area: ref; align-self: start; }
   .toolbar { grid-area: toolbar; }
   .palette { grid-area: palette; }
-  .canvas-wrap {
-    grid-area: canvas; align-self: start;
-    width: min(100%, max(420px, calc((100vh - 270px) * 10 / 7)));
-    width: min(100%, max(420px, calc((100dvh - 270px) * 10 / 7)));
-  }
+  .canvas-wrap { grid-area: canvas; }
   .release-row { grid-area: release; align-self: end; flex-direction: column; align-items: stretch; }
   .release-row .field { flex: none; }
   .release { justify-content: center; font-size: 18px; padding: 14px 18px; }
