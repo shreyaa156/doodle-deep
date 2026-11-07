@@ -116,12 +116,12 @@ export class Ocean {
     s.w = w;
     s.h = h;
 
+    // lowest the creature and its name tag may reach: a little above the sand's highest ripple
+    const floor = sandTop - 12 - this.tagSpace();
     if (s.t.motion === 'crawl') {
-      // walks on the sand, with its name still on screen
-      s.home = Math.min(sandTop + (H - sandTop) * 0.35, H - this.tagSpace() - 8) - h / 2;
+      // walks just above the sand (its little hop only goes upward)
+      s.home = floor - h / 2;
     } else {
-      // lowest the creature, its movement and its name tag may reach: just above the sand's highest ripple
-      const floor = sandTop - 12 - this.tagSpace();
       let amp, reach;
       if (s.t.motion === 'bob') { amp = this.bobAmp(); reach = h * 0.54; }
       else if (s.t.motion === 'wiggle') { amp = 16; reach = h * 0.52 + w * 0.07; }
