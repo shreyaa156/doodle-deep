@@ -9,8 +9,9 @@
 // creatures to everyone. Only accounts listed in the "admins" table can delete.
 // See supabase/schema.sql for the setup.
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Accept the URL with or without a pasted "/rest/v1/" suffix; supabase-js adds its own paths.
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL?.trim().replace(/\/+$/, '').replace(/\/rest\/v1$/, '');
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
 
 export const mode = SUPABASE_URL && SUPABASE_KEY ? 'supabase' : 'local';
 export const MAX_SHOWN = 150; // creatures swimming in the ocean at once
